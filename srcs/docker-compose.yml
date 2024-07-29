@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  nginx:
+    container_name: nginx
+    restart: always
+    ports:
+      - 443:443
+    build: ./requirements/nginx #searches for Dockerfile in this path
+    depends_on:
+      - wordpress
+    networks:
+      - inception_network
+    volumes:
+      - wordpress_volume:/var/www/wordpress
+  mariadb:
+    container_name: mariadb
+    build: ./requirements/mariadb
+    networks:
+      - inception_network
+    volumes: 
+      - mariadb_volume:/var/lib/mysql
+    restart: always
+    env_file:
+      - .env
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress_volume:/var/www/wordpress
+    env_file :
+      - .env
+    networks:
+      - inception_network 
+    restart: always
+  
+volumes:
+  mariadb_volume:
+    name: mariadb_volume
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/lenene10/data/mariadb_volume
+  wordpress_volume:
+    name: wordpress_volume
+    driver: local
+    driver_opts:
+      device: /home/lenene10/data/wordpress_volume
+      o : bind
+      type : none
+
+networks:
+  inception_network:
+    name: srcs_inception_network
+    driver: bridge
